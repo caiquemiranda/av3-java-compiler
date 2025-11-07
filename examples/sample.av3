@@ -1,0 +1,53 @@
+// Sample AV3 Program
+// Demonstrates various language features
+
+int main = 0;
+double pi = 3.14159;
+bool isRunning = true;
+
+// Simple if-else statement
+if (main < 10) {
+    main = main + 1;
+    printf("Incrementing main");
+} else {
+    main = 0;
+}
+
+// While loop
+int counter = 0;
+while (counter < 5) {
+    printf("Counter: ", counter);
+    counter = counter + 1;
+}
+
+// Do-while loop
+int x = 10;
+do {
+    x = x - 1;
+    printf("Countdown: ", x);
+} while (x > 0);
+
+// For loop with initialization
+for (int i = 0; i < 10; i = i + 1) {
+    printf("Loop iteration: ", i);
+}
+
+// Complex expressions
+int result = 0;
+result = (5 + 3) * 2 - 1;
+
+double calculation = 0.0;
+calculation = pi * 2.0 + 1.5;
+
+// Boolean expressions
+bool condition = false;
+condition = (result > 10) && (calculation < 20.0);
+
+if (condition || !isRunning) {
+    printf("Complex condition met");
+}
+
+// User input
+int userInput = 0;
+scanf(userInput);
+printf("You entered: ", userInput);

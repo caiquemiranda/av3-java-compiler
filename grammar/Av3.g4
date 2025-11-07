@@ -1,0 +1,230 @@
+grammar Av3;
+
+/* ==================== PARSER RULES ==================== */
+
+prog
+	: (declaration | statement)+ EOF
+	;
+
+/* --- Variable Declarations --- */
+
+declaration
+	: type ID ';' 					#VarDecl
+	| type ID '=' expression ';' 	#VarInitDecl
+	;
+
+type
+	: INT_T
+	| DOUBLE_T
+	| BOOL_T
+	;
+
+/* --- Statements --- */
+
+statement
+	: assignment ';' 				#StmtAssign
+	| IF '(' expression ')' statement ELSE statement 	#StmtIfElse
+	| WHILE '(' expression ')' statement 				#StmtWhile
+	| DO statement WHILE '(' expression ')' ';' 		#StmtDoWhile
+	| FOR '(' forInit ';' expression ';' forUpdate ')' statement 	#StmtFor
+	| PRINTF '(' printfArgs ')' ';' 				#StmtPrintf
+	| SCANF '(' ID ')' ';' 						#StmtScanf
+	| block 						#StmtBlock
+	;
+
+/* --- Block --- */
+
+block
+	: '{' (declaration | statement)* '}'
+	;
+
+/* Assignment (used in stmt and parts of for) */
+
+assignment
+	: ID '=' expression
+	;
+
+/* For loop parts: must not be "empty" fields */
+
+forInit
+	: assignment
+	| forDeclaration
+	;
+
+/* Declaration allowed only in the 'for' init (without final ';') */
+
+forDeclaration
+	: type ID 					#ForVarDecl
+	| type ID '=' expression 	#ForInitDecl
+	;
+
+forUpdate
+	: assignment
+	;
+
+/* --- Expressions without left recursion (precedence and associativity) --- */
+
+/*
+	Precedences (highest -> lowest):
+	1) unary: +x, -x, !x
+	2) *, /, %
+	3) +, -
+	4) <, <=, >, >=
+	5) ==, !=
+	6) &&
+	7) ||
+*/
+
+expression
+	: orExpression
+	;
+
+orExpression
+	: andExpression (OR andExpression)*
+	;
+
+andExpression
+	: eqExpression (AND eqExpression)*
+	;
+
+eqExpression
+	: relExpression ((EQ | NEQ) relExpression)*
+	;
+
+relExpression
+	: addExpression ((LT | LTE | GT | GTE) addExpression)*
+	;
+
+addExpression
+	: mulExpression ((PLUS | MINUS) mulExpression)*
+	;
+
+mulExpression
+	: unaryExpression ((MUL | DIV | MOD) unaryExpression)*
+	;
+
+unaryExpression
+	: (NOT | PLUS | MINUS) unaryExpression
+	| primary
+	;
+
+primary
+	: '(' expression ')'
+	| literal
+	| ID
+	;
+
+literal
+	: INT_LIT
+	| DOUBLE_LIT
+	| BOOL_LIT
+	;
+
+/* printf accepts a string and/or expressions separated by comma (>= 1 arg) */
+
+printfArgs
+	: STRING_LIT (',' expression)*
+	| expression (',' expression)*
+	;
+
+/* ==================== LEXER RULES ==================== */
+
+/* Keywords */
+
+IF 		: 'if';
+ELSE 	: 'else';
+WHILE 	: 'while';
+DO 		: 'do';
+FOR 	: 'for';
+PRINTF 	: 'printf';
+SCANF 	: 'scanf';
+
+INT_T 	: 'int';
+DOUBLE_T: 'double';
+BOOL_T 	: 'bool';
+
+TRUE 	: 'true';
+FALSE 	: 'false';
+
+/* Operators and punctuation */
+
+PLUS 	: '+';
+MINUS 	: '-';
+MUL 	: '*';
+DIV 	: '/';
+MOD 	: '%';
+
+EQ 		: '==';
+NEQ 	: '!=';
+LT 		: '<';
+LTE 	: '<=';
+GT 		: '>';
+GTE 	: '>=';
+
+AND 	: '&&';
+OR 		: '||';
+NOT 	: '!';
+
+ASSIGN 	: '=';
+
+LPAREN 	: '(';
+RPAREN 	: ')';
+LBRACE 	: '{';
+RBRACE 	: '}';
+COMMA 	: ',';
+SEMI 	: ';';
+
+/* Identifiers */
+
+ID
+	: [a-zA-Z_] [a-zA-Z_0-9]*
+	;
+
+/* Numeric literals: integers and doubles/floats */
+
+DOUBLE_LIT
+	: DIGITS? '.' DIGITS (EXP_PART)? 		// .5 0.5 12. (12. optionally with exponent)
+	| DIGITS '.' DIGITS? (EXP_PART)? 		// 12.3 12.
+	| DIGITS EXP_PART 						// 12e-3
+	;
+
+INT_LIT
+	: DIGITS
+	;
+
+fragment DIGITS
+	: [0-9]+
+	;
+
+fragment EXP_PART
+	: [eE] [+\-]? DIGITS
+	;
+
+/* Boolean literals mapped in the parser via BOOL_LIT */
+
+BOOL_LIT
+	: TRUE
+	| FALSE
+	;
+
+/* Strings for printf */
+
+STRING_LIT
+	: '"' ( ~["\\] | '\\' . )* '"'
+	;
+
+/* Ignored whitespace (includes tabs and newlines) */
+
+WS
+	: [ \t\r\n]+ -> skip
+	;
+
+/* Line and block comments */
+
+LINE_COMMENT
+	: '//' ~[\r\n]* -> skip
+	;
+
+BLOCK_COMMENT
+	: '/*' .*? '*/' -> skip
+	;
