@@ -1,0 +1,28 @@
+// Teste com erros semânticos
+int x;
+int y;
+
+x = 10;
+
+// Erro: variável não declarada
+z = 20;
+
+// Erro: redeclaração
+int x;
+
+// Novo bloco com escopo
+{
+    int w;
+    w = 5;
+    x = w;
+}
+
+// Erro: variável fora de escopo
+w = 10;
+
+// Erro: incompatibilidade de tipos
+int a;
+double b;
+b = 3.14;
+a = b;
+
