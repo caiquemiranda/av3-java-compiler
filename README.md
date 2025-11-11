@@ -4,16 +4,18 @@ An ANTLR-based lexical parser and compiler for the AV3 programming language.
 
 ## Team
 
-|Participantes | RA|
-|---|---|
-|Gabriel Henrique de Santos Sousa |12523218344|
-|Mariana Selene Fidelis da Silva |323210602|
-|Caique da Silva Miranda Santos |Null|
-| Sergio Sacramento Souza Junior | Null | 
+| Participantes                    | RA          |
+| -------------------------------- | ----------- |
+| Gabriel Henrique de Santos Sousa | 12523218344 |
+| Mariana Selene Fidelis da Silva  | 323210602   |
+| Caique da Silva Miranda Santos   | Null        |
+| Sergio Sacramento Souza Junior   | Null        |
+| Ewerton Vinicius Turco           | 122522517   |
 
 ## Overview
 
 This project implements a lexer and parser for AV3, a C-like programming language with support for:
+
 - Variable declarations (int, double, bool)
 - Control flow statements (if-else, while, do-while, for)
 - Expressions with proper operator precedence
@@ -29,11 +31,13 @@ Before you can use this compiler, you need to install Java:
 You have several options:
 
 **Option 1: Using Homebrew**
+
 ```bash
 brew install openjdk@11
 ```
 
 After installation, add Java to your PATH:
+
 ```bash
 echo 'export PATH="/opt/homebrew/opt/openjdk@11/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
@@ -43,6 +47,7 @@ source ~/.zshrc
 Visit [Oracle Java Downloads](https://www.oracle.com/java/technologies/downloads/) and download Java 11 or later.
 
 **Option 3: Using SDKMAN**
+
 ```bash
 curl -s "https://get.sdkman.io" | bash
 source "$HOME/.sdkman/bin/sdkman-init.sh"
@@ -52,6 +57,7 @@ sdk install java 11.0.20-tem
 ### Verify Java Installation
 
 After installation, verify Java is available:
+
 ```bash
 java -version
 ```
@@ -91,6 +97,7 @@ Run the generation script to create the lexer and parser from the grammar:
 ```
 
 This will generate the following files in the `generated/` directory:
+
 - `Av3Lexer.java` - The lexical analyzer
 - `Av3Parser.java` - The parser
 - `Av3BaseListener.java` - Base listener for tree walking
@@ -107,6 +114,7 @@ Compile the generated files and run the demo:
 ```
 
 This will:
+
 1. Compile the generated ANTLR files
 2. Compile the LexerDemo application
 3. Run the demo with sample AV3 code
@@ -124,6 +132,7 @@ You can also tokenize your own AV3 source file:
 If you prefer to compile manually:
 
 ### Generate Parser and Lexer
+
 ```bash
 java -jar tools/antlr-4.13.1-complete.jar \
     -o generated \
@@ -134,6 +143,7 @@ java -jar tools/antlr-4.13.1-complete.jar \
 ```
 
 ### Compile Generated Files
+
 ```bash
 mkdir -p bin
 javac -cp tools/antlr-4.13.1-complete.jar \
@@ -142,6 +152,7 @@ javac -cp tools/antlr-4.13.1-complete.jar \
 ```
 
 ### Compile Demo Application
+
 ```bash
 javac -cp tools/antlr-4.13.1-complete.jar:bin \
     -d bin \
@@ -149,6 +160,7 @@ javac -cp tools/antlr-4.13.1-complete.jar:bin \
 ```
 
 ### Run Demo
+
 ```bash
 java -cp tools/antlr-4.13.1-complete.jar:bin \
     com.teoria_computacao.av3.LexerDemo
@@ -169,11 +181,13 @@ mvn compile exec:java
 ## AV3 Language Features
 
 ### Data Types
+
 - `int` - Integer numbers
 - `double` - Floating-point numbers
 - `bool` - Boolean values (true/false)
 
 ### Control Flow
+
 ```c
 // If-else
 if (x > 10) {
@@ -201,6 +215,7 @@ for (int i = 0; i < 10; i = i + 1) {
 ### Operators
 
 Precedence (highest to lowest):
+
 1. Unary: `+x`, `-x`, `!x`
 2. Multiplicative: `*`, `/`, `%`
 3. Additive: `+`, `-`
@@ -226,12 +241,14 @@ printf("Factorial of ", n, " is ", factorial);
 ## Lexer Demo Output
 
 The `LexerDemo` class tokenizes AV3 code and displays each token with:
+
 - Token type (e.g., INT_T, ID, PLUS)
 - Token text (the actual characters)
 - Line number
 - Column position
 
 Example output:
+
 ```
 1  : INT_T          'int'                [Line:  1, Col:  0]
 2  : ID             'x'                  [Line:  1, Col:  4]
@@ -243,26 +260,88 @@ Example output:
 ## Troubleshooting
 
 ### "Unable to locate a Java Runtime"
+
 Make sure Java is installed and in your PATH. Run `java -version` to verify.
 
 ### Permission Denied
+
 Make the scripts executable:
+
 ```bash
 chmod +x generate-parser.sh compile-and-run.sh
 ```
 
 ### ANTLR JAR not found
+
 The ANTLR JAR should be in `tools/antlr-4.13.1-complete.jar`. If missing, download it:
+
 ```bash
 mkdir -p tools
 cd tools
 curl -O https://www.antlr.org/download/antlr-4.13.1-complete.jar
 ```
 
+## Semantic Analyzer
+
+**Analisador Semântico implementado!**
+
+O compilador AV3 agora inclui um analisador semântico completo que realiza:
+
+- **Gerenciamento de Tabela de Símbolos** - Rastreamento de variáveis e escopos
+- **Verificação de Tipos** - Validação de compatibilidade de tipos
+- **Análise de Escopo** - Verificação de visibilidade de variáveis
+- **Detecção de Erros** - Variáveis não declaradas, redeclarações, tipos incompatíveis
+
+### Quick Start - Analisador Semântico
+
+```bash
+# Executar exemplos de demonstração
+./run-analyzer.sh
+
+# Analisar arquivo específico
+./run-analyzer.sh examples/simple-test.av3
+
+# Analisar arquivo com erros
+./run-analyzer.sh examples/errors-test.av3
+```
+
+### Exemplos de Análise
+
+**Código válido:**
+
+```c
+int x;
+x = 10;
+```
+
+**Resultado:** Análise semântica concluída com sucesso!
+
+**Código com erros:**
+
+```c
+int x;
+y = 20;  // Erro: variável 'y' não declarada
+int x;   // Erro: redeclaração de 'x'
+```
+
+**Resultado:**
+
+```
+Erros semânticos encontrados: 2
+1. [UNDECLARED_VARIABLE] Linha 2: Variável 'y' não foi declarada
+2. [REDECLARED_VARIABLE] Linha 3: Variável 'x' já foi declarada
+```
+
+### Arquivos de Exemplo
+
+- `examples/simple-test.av3` - Programa válido simples
+- `examples/errors-test.av3` - Exemplos de erros semânticos
+- `examples/sample.av3` - Programa completo (original)
+
 ## Next Steps
 
-- Implement semantic analysis
-- Add symbol table management
+- ~~Implement semantic analysis~~ ✅ Implementado!
+- ~~Add symbol table management~~ ✅ Implementado!
 - Generate intermediate code
 - Add code optimization
 - Implement code generation for a target platform
