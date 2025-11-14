@@ -1,0 +1,49 @@
+// Exemplo de código com erros semânticos
+// Este arquivo demonstra vários tipos de erros semânticos
+
+// Declarações válidas
+int x = 10;
+double y = 3.14;
+bool flag = true;
+
+// ERRO 1: Variável não declarada
+undeclaredVar = 5;
+
+// ERRO 2: Redeclaração de variável
+int x = 20;
+
+// ERRO 3: Incompatibilidade de tipos em atribuição
+x = flag;
+flag = y;
+
+// ERRO 4: Tipo inválido em condição
+if (x) {
+    printf("Isso não deveria compilar");
+}
+
+// ERRO 5: Operação inválida (bool + int)
+int result = flag + x;
+
+// ERRO 6: Operador lógico em tipos não-booleanos
+bool test = x && y;
+
+// Bloco com escopo
+{
+    int z = 100;
+    z = z + 1;
+}
+
+// ERRO 7: Variável fora de escopo
+z = 200;
+
+// ERRO 8: Variável não declarada em scanf
+scanf(unknownVar);
+
+// Loop for com escopo
+for (int i = 0; i < 10; i = i + 1) {
+    printf("Loop: ", i);
+}
+
+// ERRO 9: Variável de loop fora de escopo
+i = 5;
+
