@@ -1,0 +1,83 @@
+// Programa válido sem erros semânticos
+// Demonstra o uso correto da linguagem AV3
+
+// Declarações de variáveis
+int counter = 0;
+double sum = 0.0;
+bool isPositive = true;
+
+// Operações aritméticas simples
+int a = 5;
+int b = 3;
+int result = a + b * 2 - 1;
+
+// Expressões booleanas
+bool comparison = (result > 10) && (result < 20);
+bool negation = !isPositive;
+
+// Estrutura if-else
+if (result > 10) {
+    printf("Result is greater than 10");
+    result = result + 1;
+} else {
+    printf("Result is 10 or less");
+    result = result - 1;
+}
+
+// Loop while
+while (counter < 5) {
+    printf("Counter: ", counter);
+    counter = counter + 1;
+    sum = sum + counter;
+}
+
+// Loop do-while
+int countdown = 10;
+do {
+    printf("Countdown: ", countdown);
+    countdown = countdown - 1;
+} while (countdown > 0);
+
+// Loop for com variável local
+for (int i = 0; i < 10; i = i + 1) {
+    printf("Loop iteration: ", i);
+}
+
+// Blocos com escopo
+{
+    int localVar = 100;
+    localVar = localVar + 50;
+    printf("Local variable: ", localVar);
+}
+
+// Operações com double
+double pi = 3.14159;
+double radius = 5.0;
+double area = pi * radius * radius;
+
+// Conversão implícita int para double
+double mixed = a + pi;
+
+// Operadores relacionais
+bool isEqual = (a == b);
+bool isNotEqual = (a != b);
+bool isLess = (a < b);
+bool isGreater = (a > b);
+bool isLessOrEqual = (a <= b);
+bool isGreaterOrEqual = (a >= b);
+
+// Operadores lógicos
+bool andResult = isEqual && isNotEqual;
+bool orResult = isEqual || isNotEqual;
+
+// Entrada de usuário
+int userInput = 0;
+scanf(userInput);
+printf("You entered: ", userInput);
+
+// Expressões complexas
+int complex = ((a + b) * 2 - 3) / 4 + 10;
+bool complexBool = ((a > b) && (b < 10)) || ((a == 5) && !isPositive);
+
+printf("Program finished successfully!");
+

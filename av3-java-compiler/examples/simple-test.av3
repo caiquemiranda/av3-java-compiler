@@ -1,0 +1,11 @@
+// Teste simples
+int x;
+int y;
+double z;
+
+x = 10;
+y = 20;
+z = 3.14;
+
+x = y;
+
