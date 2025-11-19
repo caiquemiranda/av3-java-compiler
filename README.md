@@ -9,7 +9,7 @@ An ANTLR-based lexical parser and compiler for the AV3 programming language.
 | Gabriel Henrique de Santos Sousa | 12523218344 |
 | Mariana Selene Fidelis da Silva  | 323210602   |
 | Caique da Silva Miranda Santos   | 12723216257 |
-| Sergio Sacramento Souza Junior   | Null        |
+| Sergio Sacramento Souza Junior   | 12725156371 |
 | Ewerton Vinicius Turco           | 122522517   |
 
 ## Overview
