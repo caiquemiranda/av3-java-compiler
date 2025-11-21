@@ -10,7 +10,7 @@ import java.util.List;
  *
  * LOGIC FIX:
  * All 'visit' methods representing a command (if, for, printf) or an expression (a+b)
- * will NOW RETURN the translated Java String.
+ * will now return the translated Java String.
  *
  * Only visitProg (at the top) and the visitVarDecl methods will use
  * the StringBuilders to assemble the final file.
@@ -57,8 +57,8 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
     /**
      * Entry point.
      * Visits all declarations and statements.
-     * Declarations are ADDED to the 'declarations' builder.
-     * Statements have their code (String) RETURNED and are ADDED to the 'mainBody'.
+     * Declarations are added to the 'declarations' builder.
+     * Statements have their code (String) returned and are added to the 'mainBody'.
      */
     @Override
     public String visitProg(Av3Parser.ProgContext ctx) {
@@ -98,7 +98,7 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
     }
 
     // --- STATEMENTS ---
-    // (These methods RETURN the translated Java code string)
+    // (These methods return the translated Java code string)
 
     @Override
     public String visitStmtAssign(Av3Parser.StmtAssignContext ctx) {
@@ -175,13 +175,13 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
     /**
      * Visits a block (e.g., "{ ... }").
      * This method builds the block string by visiting its children
-     * and getting their RETURNED strings.
+     * and getting their returned strings.
      */
     @Override
     public String visitBlock(Av3Parser.BlockContext ctx) {
         StringBuilder blockBody = new StringBuilder("{\n");
 
-        // Visit declarations INSIDE the block
+        // Visit declarations inside the block
         for (Av3Parser.DeclarationContext decl : ctx.declaration()) {
 
             visit(decl);
@@ -193,7 +193,7 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
         }
 
         blockBody.append("\t\t}");
-        return blockBody.toString(); // RETURN the "{ ... }" block string
+        return blockBody.toString(); // return the "{ ... }" block string
     }
 
     // --- FOR-LOOP PARTS ---
@@ -210,7 +210,7 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
     }
 
     // --- EXPRESSIONS ---
-    // (These methods ALWAYS RETURN the expression string)
+    // (These methods always return the expression string)
 
     @Override
     public String visitAssignment(Av3Parser.AssignmentContext ctx) {

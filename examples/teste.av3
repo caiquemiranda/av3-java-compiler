@@ -1,0 +1,16 @@
+int x = 10;
+int y;
+printf("Digite um valor para y:");
+scanf(y);
+
+if (x > y) {
+    printf("x e maior que y");
+} else {
+    printf("x NAO e maior que y");
+}
+
+double z = 1.5;
+for (int i = 0; i < 5; i = i + 1) {
+    z = z * i;
+}
+printf("Valor final de z:", z);
