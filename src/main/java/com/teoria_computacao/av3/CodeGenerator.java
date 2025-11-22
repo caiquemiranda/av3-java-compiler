@@ -6,40 +6,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This is the Code Generator
- *
- * LOGIC FIX:
- * All 'visit' methods representing a command (if, for, printf) or an expression (a+b)
- * will now return the translated Java String.
- *
- * Only visitProg (at the top) and the visitVarDecl methods will use
- * the StringBuilders to assemble the final file.
+ * Code Generator - Updated to re-populate Symbol Table locally
+ * to ensure variable types are available during generation.
  */
 public class CodeGenerator extends Av3BaseVisitor<String> {
 
-    // Using the symbol table for know the variable type for SCANF
     private final SymbolTable symbolTable;
-
-    // StringBuilders to assemble the final code
     private StringBuilder mainBody;
     private StringBuilder declarations;
-    private StringBuilder setup; // For imports and the Scanner object
+    private StringBuilder setup;
 
     public CodeGenerator(SymbolTable symbolTable) {
+        // We use the symbol table passed in, but we might need to re-declare vars
+        // if the previous analysis cleared the scopes.
         this.symbolTable = symbolTable;
+
         this.mainBody = new StringBuilder();
         this.declarations = new StringBuilder();
         this.setup = new StringBuilder();
 
-        // Add the setup for keyboard input (our 'scanf' function)
         this.setup.append("\t\t// Setup for keyboard input (scanf)\n");
         this.setup.append("\t\tjava.util.Scanner scanner = new java.util.Scanner(System.in);\n\n");
     }
 
-    /**
-     * Called at the end to get the complete generated Java file.
-     * It wraps the setup, declarations, and mainBody in a runnable Java class.
-     */
     public String getGeneratedCode() {
         return "public class ProgramaGerado {\n" +
                 "\tpublic static void main(String[] args) {\n\n" +
@@ -52,53 +41,51 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
                 "}\n";
     }
 
-    // --- VISITOR METHODS ---
-
-    /**
-     * Entry point.
-     * Visits all declarations and statements.
-     * Declarations are added to the 'declarations' builder.
-     * Statements have their code (String) returned and are added to the 'mainBody'.
-     */
     @Override
     public String visitProg(Av3Parser.ProgContext ctx) {
-        // Visit declarations. They will populate the 'declarations' builder
         for (Av3Parser.DeclarationContext decl : ctx.declaration()) {
             visit(decl);
         }
-
-        // Visit statements. Each will RETURN a string of Java code
         for (Av3Parser.StatementContext stmt : ctx.statement()) {
-            String stmtCode = visit(stmt); // e.g., "if (x > 10) { ... }"
+            String stmtCode = visit(stmt);
             if (stmtCode != null) {
                 mainBody.append("\t\t" + stmtCode + "\n");
             }
         }
-        return null; // Final result is fetched with getGeneratedCode()
+        return null;
     }
 
-    // --- VARIABLE DECLARATIONS ---
-    // (These methods append to 'declarations' and return null)
+    // --- register variables in SymbolTable ---
 
     @Override
     public String visitVarDecl(Av3Parser.VarDeclContext ctx) {
-        String javaType = translateType(ctx.type());
+        String typeStr = translateType(ctx.type());
         String id = ctx.ID().getText();
-        declarations.append("\t\t" + javaType + " " + id + ";\n");
-        return null; // Appended to declarations builder
+        Type type = getTypeFromStr(typeStr);
+        symbolTable.declare(new Symbol(id, type, 0, 0));
+        declarations.append("\t\t" + typeStr + " " + id + ";\n");
+        return null;
     }
 
     @Override
     public String visitVarInitDecl(Av3Parser.VarInitDeclContext ctx) {
-        String javaType = translateType(ctx.type());
+        String typeStr = translateType(ctx.type());
         String id = ctx.ID().getText();
+        Type type = getTypeFromStr(typeStr);
+        symbolTable.declare(new Symbol(id, type, 0, 0));
         String expr = visit(ctx.expression());
-        declarations.append("\t\t" + javaType + " " + id + " = " + expr + ";\n");
+        declarations.append("\t\t" + typeStr + " " + id + " = " + expr + ";\n");
         return null;
+    }
+    // Helper to convert Java type string back to Enum Type
+    private Type getTypeFromStr(String typeStr) {
+        if (typeStr.equals("int")) return Type.INT;
+        if (typeStr.equals("double")) return Type.DOUBLE;
+        if (typeStr.equals("boolean")) return Type.BOOL;
+        return Type.VOID;
     }
 
     // --- STATEMENTS ---
-    // (These methods return the translated Java code string)
 
     @Override
     public String visitStmtAssign(Av3Parser.StmtAssignContext ctx) {
@@ -109,14 +96,11 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
     @Override
     public String visitStmtIfElse(Av3Parser.StmtIfElseContext ctx) {
         String cond = visit(ctx.expression());
-        String thenStmt = visit(ctx.statement(0)); // Returns the 'then' block string
-
-        // The grammar makes the 'else' optional
+        String thenStmt = visit(ctx.statement(0));
         String elseStmt = "";
-        if (ctx.statement(1) != null) { // Check if 'else' (statement(1)) exists
+        if (ctx.statement(1) != null) {
             elseStmt = " else " + visit(ctx.statement(1));
         }
-
         return "if (" + cond + ") " + thenStmt + elseStmt;
     }
 
@@ -152,16 +136,21 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
     @Override
     public String visitStmtScanf(Av3Parser.StmtScanfContext ctx) {
         String varName = ctx.ID().getText();
+
+        // Now this lookup should work because we re-registered the vars
         Symbol symbol = symbolTable.lookup(varName);
 
         if (symbol == null) {
+            // Fallback: if still not found, assume int or try to guess?
+            // Ideally this shouldn't happen if declared globally.
             return "// CODEGEN ERROR: Symbol '" + varName + "' not found!";
         } else if (symbol.getType() == Type.INT) {
-            return varName + " = scanner.nextInt();";
+            // Added .nextLine() to consume the newline character left by nextInt
+            return varName + " = scanner.nextInt();\nscanner.nextLine();";
         } else if (symbol.getType() == Type.DOUBLE) {
-            return varName + " = scanner.nextDouble();";
+            return varName + " = scanner.nextDouble();\nscanner.nextLine();";
         } else if (symbol.getType() == Type.BOOL) {
-            return varName + " = scanner.nextBoolean();";
+            return varName + " = scanner.nextBoolean();\nscanner.nextLine();";
         } else {
             return "// CODEGEN ERROR: Cannot scanf type " + symbol.getType();
         }
@@ -169,48 +158,45 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
 
     @Override
     public String visitStmtBlock(Av3Parser.StmtBlockContext ctx) {
-        return visit(ctx.block()); // Just visit the 'block' node
+        return visit(ctx.block());
     }
 
-    /**
-     * Visits a block (e.g., "{ ... }").
-     * This method builds the block string by visiting its children
-     * and getting their returned strings.
-     */
     @Override
     public String visitBlock(Av3Parser.BlockContext ctx) {
         StringBuilder blockBody = new StringBuilder("{\n");
 
-        // Visit declarations inside the block
-        for (Av3Parser.DeclarationContext decl : ctx.declaration()) {
-
-            visit(decl);
-        }
-
         for (Av3Parser.StatementContext stmt : ctx.statement()) {
-            String stmtCode = visit(stmt); // Get the returned string (e.g., "x = 10;")
-            blockBody.append("\t\t\t" + stmtCode + "\n"); // Add to the block's body
+            String stmtCode = visit(stmt);
+            blockBody.append("\t\t\t" + stmtCode + "\n");
         }
-
         blockBody.append("\t\t}");
-        return blockBody.toString(); // return the "{ ... }" block string
+        return blockBody.toString();
     }
 
     // --- FOR-LOOP PARTS ---
-    // (These return Strings)
 
     @Override
     public String visitForVarDecl(Av3Parser.ForVarDeclContext ctx) {
-        return translateType(ctx.type()) + " " + ctx.ID().getText();
+        // We also register loop variables!
+        String typeStr = translateType(ctx.type());
+        String id = ctx.ID().getText();
+        Type type = getTypeFromStr(typeStr);
+        symbolTable.declare(new Symbol(id, type, 0, 0));
+
+        return typeStr + " " + id;
     }
 
     @Override
     public String visitForInitDecl(Av3Parser.ForInitDeclContext ctx) {
-        return translateType(ctx.type()) + " " + ctx.ID().getText() + " = " + visit(ctx.expression());
+        String typeStr = translateType(ctx.type());
+        String id = ctx.ID().getText();
+        Type type = getTypeFromStr(typeStr);
+        symbolTable.declare(new Symbol(id, type, 0, 0));
+
+        return typeStr + " " + id + " = " + visit(ctx.expression());
     }
 
     // --- EXPRESSIONS ---
-    // (These methods always return the expression string)
 
     @Override
     public String visitAssignment(Av3Parser.AssignmentContext ctx) {
@@ -220,16 +206,12 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
     @Override
     public String visitPrintfArgs(Av3Parser.PrintfArgsContext ctx) {
         List<String> args = new ArrayList<>();
-
         if (ctx.STRING_LIT() != null) {
             args.add(ctx.STRING_LIT().getText());
         }
-
         for (Av3Parser.ExpressionContext exprCtx : ctx.expression()) {
             args.add(visit(exprCtx));
         }
-
-        // Joins all arguments with " + "
         return String.join(" + ", args);
     }
 
@@ -237,9 +219,7 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
 
     @Override
     public String visitOrExpression(Av3Parser.OrExpressionContext ctx) {
-        if (ctx.andExpression().size() == 1) {
-            return visit(ctx.andExpression(0));
-        }
+        if (ctx.andExpression().size() == 1) return visit(ctx.andExpression(0));
         String left = visit(ctx.andExpression(0));
         for(int i = 1; i < ctx.andExpression().size(); i++) {
             String right = visit(ctx.andExpression(i));
@@ -250,9 +230,7 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
 
     @Override
     public String visitAndExpression(Av3Parser.AndExpressionContext ctx) {
-        if (ctx.eqExpression().size() == 1) {
-            return visit(ctx.eqExpression(0));
-        }
+        if (ctx.eqExpression().size() == 1) return visit(ctx.eqExpression(0));
         String left = visit(ctx.eqExpression(0));
         for(int i = 1; i < ctx.eqExpression().size(); i++) {
             String right = visit(ctx.eqExpression(i));
@@ -263,9 +241,7 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
 
     @Override
     public String visitEqExpression(Av3Parser.EqExpressionContext ctx) {
-        if (ctx.relExpression().size() == 1) {
-            return visit(ctx.relExpression(0));
-        }
+        if (ctx.relExpression().size() == 1) return visit(ctx.relExpression(0));
         String left = visit(ctx.relExpression(0));
         String op = ctx.getChild(1).getText();
         String right = visit(ctx.relExpression(1));
@@ -274,9 +250,7 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
 
     @Override
     public String visitRelExpression(Av3Parser.RelExpressionContext ctx) {
-        if (ctx.addExpression().size() == 1) {
-            return visit(ctx.addExpression(0));
-        }
+        if (ctx.addExpression().size() == 1) return visit(ctx.addExpression(0));
         String left = visit(ctx.addExpression(0));
         String op = ctx.getChild(1).getText();
         String right = visit(ctx.addExpression(1));
@@ -285,9 +259,7 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
 
     @Override
     public String visitAddExpression(Av3Parser.AddExpressionContext ctx) {
-        if (ctx.mulExpression().size() == 1) {
-            return visit(ctx.mulExpression(0));
-        }
+        if (ctx.mulExpression().size() == 1) return visit(ctx.mulExpression(0));
         String left = visit(ctx.mulExpression(0));
         String op = ctx.getChild(1).getText();
         String right = visit(ctx.mulExpression(1));
@@ -296,9 +268,7 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
 
     @Override
     public String visitMulExpression(Av3Parser.MulExpressionContext ctx) {
-        if (ctx.unaryExpression().size() == 1) {
-            return visit(ctx.unaryExpression(0));
-        }
+        if (ctx.unaryExpression().size() == 1) return visit(ctx.unaryExpression(0));
         String left = visit(ctx.unaryExpression(0));
         String op = ctx.getChild(1).getText();
         String right = visit(ctx.unaryExpression(1));
@@ -307,9 +277,7 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
 
     @Override
     public String visitUnaryExpression(Av3Parser.UnaryExpressionContext ctx) {
-        if (ctx.primary() != null) {
-            return visit(ctx.primary());
-        }
+        if (ctx.primary() != null) return visit(ctx.primary());
         String op = ctx.getChild(0).getText();
         String expr = visit(ctx.unaryExpression());
         return op + expr;
@@ -317,13 +285,9 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
 
     @Override
     public String visitPrimary(Av3Parser.PrimaryContext ctx) {
-        if (ctx.literal() != null) {
-            return visit(ctx.literal());
-        }
-        if (ctx.ID() != null) {
-            return ctx.ID().getText();
-        }
-        return "(" + visit(ctx.expression()) + ")"; // Parenthesized expression
+        if (ctx.literal() != null) return visit(ctx.literal());
+        if (ctx.ID() != null) return ctx.ID().getText();
+        return "(" + visit(ctx.expression()) + ")";
     }
 
     @Override
@@ -331,21 +295,10 @@ public class CodeGenerator extends Av3BaseVisitor<String> {
         return ctx.getText();
     }
 
-
-    // --- HELPER METHOD ---
-
-    /**
-     * Translates a grammar 'type' node into a Java type string.
-     * (e.g., 'bool' becomes 'boolean')
-     */
     private String translateType(Av3Parser.TypeContext ctx) {
-        if (ctx.INT_T() != null) {
-            return "int";
-        } else if (ctx.DOUBLE_T() != null) {
-            return "double";
-        } else if (ctx.BOOL_T() != null) {
-            return "boolean"; // 'bool' in our lang is 'boolean' in Java
-        }
+        if (ctx.INT_T() != null) return "int";
+        if (ctx.DOUBLE_T() != null) return "double";
+        if (ctx.BOOL_T() != null) return "boolean";
         return "void";
     }
 }

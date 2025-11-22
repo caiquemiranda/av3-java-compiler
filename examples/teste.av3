@@ -1,16 +1,154 @@
-int x = 10;
-int y;
-printf("Digite um valor para y:");
-scanf(y);
+int opcao = 0;
+bool rodando = true;
 
-if (x > y) {
-    printf("x e maior que y");
-} else {
-    printf("x NAO e maior que y");
+printf("=== Sistema Multifuncional AV3 ===\n");
+
+while (rodando) {
+    printf("\nMenu Principal:\n");
+    printf("1 - Calcular IMC\n");
+    printf("2 - Testar Numero Primo\n");
+    printf("3 - Calculadora com Historico\n");
+    printf("4 - Gerar Tabuada\n");
+    printf("0 - Sair\n");
+    printf("Escolha uma opcao: ");
+    scanf(opcao);
+
+    if (opcao == 0) {
+        rodando = false;
+    }
+
+    else if (opcao == 1) {
+        // =======================
+        //     CÁLCULO IMC
+        // =======================
+        double peso = 0;
+        double altura = 0;
+        double imc = 0;
+
+        printf("Digite o peso: ");
+        scanf(peso);
+
+        printf("Digite a altura: ");
+        scanf(altura);
+
+        imc = peso / (altura * altura);
+
+        printf("Seu IMC: ", imc);
+
+        if (imc < 18.5) {
+            printf("Classificacao: Abaixo do peso\n");
+        } else if (imc < 25) {
+            printf("Classificacao: Peso ideal\n");
+        } else if (imc < 30) {
+            printf("Classificacao: Sobrepeso\n");
+        } else {
+            printf("Classificacao: Obesidade\n");
+        }
+    }
+
+    else if (opcao == 2) {
+        // =======================
+        //     NUMERO PRIMO
+        // =======================
+        int n = 0;
+        int i = 2;
+        bool primo = true;
+
+        printf("Digite um numero: ");
+        scanf(n);
+
+        if (n < 2) {
+            primo = false;
+        } else {
+            while (i < n) {
+                if (n % i == 0) {
+                    primo = false;
+                    i = n;  // força saída
+                } else {
+                    i = i + 1;
+                }
+            }
+        }
+
+        if (primo == true) {
+            printf("O numero e primo\n");
+        } else {
+            printf("O numero NAO e primo\n");
+        }
+    }
+
+    else if (opcao == 3) {
+        // =================================
+        //   CALCULADORA COM HISTÓRICO
+        // =================================
+        int opCalc = 0;
+        double a = 0;
+        double b = 0;
+        double resultado = 0;
+        int historico = 0;
+
+        do {
+            printf("\n--- Calculadora ---\n");
+            printf("1 - Soma\n");
+            printf("2 - Subtracao\n");
+            printf("3 - Multiplicacao\n");
+            printf("4 - Divisao\n");
+            printf("0 - Voltar\n");
+            printf("Escolha: ");
+            scanf(opCalc);
+
+            if (opCalc > 0 && opCalc < 5) {
+                printf("Digite A: ");
+                scanf(a);
+                printf("Digite B: ");
+                scanf(b);
+
+                if (opCalc == 1) {
+                    resultado = a + b;
+                } else if (opCalc == 2) {
+                    resultado = a - b;
+                } else if (opCalc == 3) {
+                    resultado = a * b;
+                } else if (opCalc == 4) {
+                    if (b == 0) {
+                        printf("Erro: Divisao por zero\n");
+                    } else {
+                        resultado = a / b;
+                    }
+                }
+
+                printf("Resultado: ", resultado);
+                historico = historico + 1;
+                printf("Operacoes realizadas: ", historico);
+            }
+
+        } while (opCalc != 0);
+    }
+
+    else if (opcao == 4) {
+        // =======================
+        //        TABUADA
+        // =======================
+        int valor = 0;
+        int j = 0;
+
+        printf("Digite um numero para gerar a tabuada: ");
+        scanf(valor);
+
+        for (j = 1; j <= 10; j = j + 1) {
+            printf("Resultado: ");
+            printf("", valor);
+            printf(" x ");
+            printf("", j);
+            printf(" = ");
+            printf("", valor * j);
+        }
+    }
+
+    else {
+        printf("Opcao invalida!\n");
+    }
 }
 
-double z = 1.5;
-for (int i = 0; i < 5; i = i + 1) {
-    z = z * i;
-}
-printf("Valor final de z:", z);
+printf("Sistema encerrado.\n");
+
