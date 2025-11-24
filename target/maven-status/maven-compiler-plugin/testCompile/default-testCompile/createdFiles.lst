@@ -1,0 +1,9 @@
+ParserErrorsTest.class
+ParserIOTest.class
+ParserConditionalsTest.class
+ParserLoopsTest.class
+ParserTest.class
+ParserSmokeTest.class
+ParserStatementsTest.class
+ParserDeclarationsTest.class
+ParserExpressionsTest.class

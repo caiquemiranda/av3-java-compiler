@@ -99,7 +99,6 @@ public class Compiler {
             return; // Stop execution
         }
 
-
         System.out.println("--- 1. SOURCE CODE (AV3) ---");
         System.out.println(code);
         System.out.println("----------------------------------------\n");
@@ -136,7 +135,7 @@ public class Compiler {
             System.out.println("Semantic Analysis OK!");
             System.out.println("----------------------------------------\n");
 
-            // STEP 4: Code Generation (The "Translator" - YOUR PART!)
+            // STEP 4: Code Generation (The "Translator")
             System.out.println("--- 4. Code Generation (Translating to Java) ---");
 
             SymbolTable symbolTable = analyzer.getSymbolTable();
